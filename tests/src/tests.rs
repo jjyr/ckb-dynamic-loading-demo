@@ -1,6 +1,8 @@
 use super::*;
 use ckb_testtool::context::Context;
 use ckb_tool::ckb_types::{bytes::Bytes, core::TransactionBuilder, packed::*, prelude::*};
+use std::io::Read;
+use std::fs::File;
 
 const MAX_CYCLES: u64 = 10_000_000;
 
@@ -10,6 +12,18 @@ fn test_basic() {
     let mut context = Context::default();
     let contract_bin: Bytes = Loader::default().load_binary("dynamic-loading-demo");
     let out_point = context.deploy_cell(contract_bin);
+
+    // deploy shared library
+    let shared_lib_bin = {
+        let mut buf = Vec::new();
+        File::open("../shared-lib/shared-lib.so")
+            .unwrap()
+            .read_to_end(&mut buf)
+            .expect("read code");
+        Bytes::from(buf)
+    };
+    let shared_lib_out_point = context.deploy_cell(shared_lib_bin);
+    let shared_lib_dep = CellDep::new_builder().out_point(shared_lib_out_point).build();
 
     // prepare scripts
     let lock_script = context
@@ -47,6 +61,7 @@ fn test_basic() {
         .outputs(outputs)
         .outputs_data(outputs_data.pack())
         .cell_dep(lock_script_dep)
+        .cell_dep(shared_lib_dep)
         .build();
     let tx = context.complete_tx(tx);
 
