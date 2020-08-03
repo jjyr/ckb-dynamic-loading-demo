@@ -1,0 +1,5 @@
+deployment = "deployment.toml"
+
+[[contracts]]
+name = "dynamic-loading-demo"
+template_type = "Rust"

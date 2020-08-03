@@ -1,0 +1,9 @@
+build/*
+target/*
+contracts/**/target/*
+.cache/.cargo/*
+!.gitkeep
+.tmp/
+shared-lib/*.so
+shared-lib/*.debug
+
